@@ -1,0 +1,15 @@
+[package]
+name = "playing_with_tui"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "matrix"
+path = "matrix/main.rs"
+
+[[bin]]
+name = "game_of_life"
+path = "game_of_life/main.rs"
+
+[dependencies]
+crossterm = { version = "0.28.1", features = ["bracketed-paste"] }
