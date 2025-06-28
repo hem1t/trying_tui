@@ -5,18 +5,20 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 
-static BLOCK: &str = "\u{2588}\u{2588}";
+static BLOCK_1: &str = "\u{2588}\u{2588}";
+static BLOCK_0: &str = "  ";
 
 fn main() -> std::io::Result<()> {
     let mut screen = Screen::create();
-    for l in 0..5 {
-        for r in 0..5 {
-            screen.set(l, r);
-        }
-    }
-    dbg!(crossterm::terminal::size()?);
-    dbg!(&screen.len());
-    dbg!(&screen[0].len());
+    // Debug line
+    // for l in 0..5 {
+    //     for r in 0..5 {
+    //         screen.set(l, r);
+    //     }
+    // }
+    // dbg!(crossterm::terminal::size()?);
+    // dbg!(&screen.len());
+    // dbg!(&screen[0].len());
 
     enable_raw_mode()?;
     execute!(stdout(), EnterAlternateScreen)?;
@@ -29,14 +31,13 @@ fn main() -> std::io::Result<()> {
 }
 
 fn draw_screen(screen: &Screen) -> std::io::Result<()> {
-    // TODO: requires controlled printing
-    execute!(stdout(), cursor::MoveTo(0, 0))?;
-    for row in screen.iter() {
+    for (ln, row) in screen.iter().enumerate() {
+        execute!(stdout(), cursor::MoveTo(0, ln as u16))?;
         for &alive in row {
             if alive {
-                print!("{BLOCK}");
+                print!("{BLOCK_1}");
             } else {
-                print!("  ");
+                print!("{BLOCK_0}");
             }
         }
     }
