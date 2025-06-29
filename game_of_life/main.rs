@@ -1,7 +1,14 @@
-use std::{io::stdout, ops::Deref, thread, time::Duration};
+use std::{
+    io::{stdout, Write},
+    ops::Deref,
+    thread,
+    time::Duration,
+};
 
 use crossterm::{
-    cursor, execute,
+    cursor,
+    event::{poll, read, Event, KeyCode, KeyEvent},
+    execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 
@@ -10,20 +17,35 @@ static BLOCK_0: &str = "  ";
 
 fn main() -> std::io::Result<()> {
     let mut screen = Screen::create();
+    let mut judge_screen = Screen::create();
     // Debug line
-    // for l in 0..5 {
-    //     for r in 0..5 {
-    //         screen.set(l, r);
-    //     }
-    // }
+    for l in 0..5 {
+        for r in 0..5 {
+            screen.set(l, r);
+        }
+    }
     // dbg!(crossterm::terminal::size()?);
     // dbg!(&screen.len());
     // dbg!(&screen[0].len());
 
     enable_raw_mode()?;
     execute!(stdout(), EnterAlternateScreen)?;
-    draw_screen(&screen)?;
-    thread::sleep(Duration::from_millis(1700));
+
+    // let mut counter = 0;
+    loop {
+        draw_screen(&screen)?;
+        // execute!(stdout(), cursor::MoveTo(0, screen.len() as u16))?;
+        // print!("{counter}");
+        // stdout().flush()?;
+        // counter += 1;
+        if poll(Duration::from_millis(750)).unwrap() {
+            match read()? {
+                Event::Key(k) if k == KeyCode::Char('q').into() => break,
+                _ => (),
+            }
+        }
+    }
+
     execute!(stdout(), LeaveAlternateScreen)?;
     disable_raw_mode()?;
 
