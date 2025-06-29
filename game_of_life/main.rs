@@ -18,14 +18,23 @@ static BLOCK_0: &str = "  ";
 fn main() -> std::io::Result<()> {
     let mut screen = Screen::create();
     // Debug line
-    for l in 0..10 {
-        for r in 0..5 {
-            screen.set(l, r);
-        }
-    }
+    // for l in (screen.l / 2 - 5)..=((screen.l / 2) + 10) {
+    //     for r in (screen.l / 2 - 5)..=((screen.r / 2) + 10) {
+    //         screen.set(l, r);
+    //     }
+    // }
+
     // dbg!(crossterm::terminal::size()?);
     // dbg!(&screen.len());
     // dbg!(&screen[0].len());
+
+    // an example picked from wikipedia
+    let (l, r) = (90, 50);
+    screen.set(l, r);
+    screen.set(l, r + 1);
+    screen.set(l + 1, r + 1);
+    screen.set(l + 1, r + 2);
+    screen.set(l - 1, r + 1);
 
     enable_raw_mode()?;
     execute!(stdout(), EnterAlternateScreen)?;
