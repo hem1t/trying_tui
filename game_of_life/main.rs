@@ -17,9 +17,8 @@ static BLOCK_0: &str = "  ";
 
 fn main() -> std::io::Result<()> {
     let mut screen = Screen::create();
-    let mut judge_screen = Screen::create();
     // Debug line
-    for l in 0..5 {
+    for l in 0..10 {
         for r in 0..5 {
             screen.set(l, r);
         }
@@ -38,6 +37,7 @@ fn main() -> std::io::Result<()> {
         // print!("{counter}");
         // stdout().flush()?;
         // counter += 1;
+        screen = to_next_life(&screen);
         if poll(Duration::from_millis(750)).unwrap() {
             match read()? {
                 Event::Key(k) if k == KeyCode::Char('q').into() => break,
@@ -50,6 +50,22 @@ fn main() -> std::io::Result<()> {
     disable_raw_mode()?;
 
     Ok(())
+}
+
+fn to_next_life(from: &Screen) -> Screen {
+    let mut judge_screen = from.clone();
+
+    for (ln, row) in from.iter().enumerate() {
+        for (rn, &alive) in row.iter().enumerate() {
+            let count = from.neighbors_alive(ln, rn);
+            if alive && count < 2 || count > 3 {
+                judge_screen.unset(ln, rn);
+            } else if !alive && count == 3 {
+                judge_screen.set(ln, rn);
+            }
+        }
+    }
+    judge_screen
 }
 
 fn draw_screen(screen: &Screen) -> std::io::Result<()> {
@@ -66,8 +82,10 @@ fn draw_screen(screen: &Screen) -> std::io::Result<()> {
     Ok(())
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Screen {
+    l: usize,
+    r: usize,
     s: Vec<Vec<bool>>,
 }
 
@@ -75,12 +93,49 @@ impl Screen {
     fn create() -> Self {
         if let Ok((r, l)) = crossterm::terminal::size() {
             return Screen {
+                l: l as usize,
+                r: r as usize / 2,
                 s: vec![vec![false; r as usize / 2]; l as usize],
             };
         }
         Screen {
+            l: 5,
+            r: 5,
             s: vec![vec![true; 5]; 5],
         }
+    }
+
+    fn neighbors_alive(&self, l: usize, r: usize) -> usize {
+        let mut alives = 0;
+
+        let (rnz, lnz) = (r != 0, l != 0);
+        let (rib, lib) = (r + 1 < self.r, l + 1 < self.l);
+
+        if lib && self.get(l + 1, r) {
+            alives += 1;
+        }
+        if lnz && self.get(l - 1, r) {
+            alives += 1;
+        }
+        if rib && self.get(l, r + 1) {
+            alives += 1;
+        }
+        if rnz && self.get(l, r - 1) {
+            alives += 1;
+        }
+        if lib && rib && self.get(l + 1, r + 1) {
+            alives += 1;
+        }
+        if lnz && rnz && self.get(l - 1, r - 1) {
+            alives += 1;
+        }
+        if lib && rnz && self.get(l + 1, r - 1) {
+            alives += 1;
+        }
+        if lnz && rib && self.get(l - 1, r + 1) {
+            alives += 1;
+        }
+        alives
     }
 
     fn get(&self, l: usize, r: usize) -> bool {
