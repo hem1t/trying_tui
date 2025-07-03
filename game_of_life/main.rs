@@ -47,7 +47,7 @@ fn main() -> std::io::Result<()> {
         // stdout().flush()?;
         // counter += 1;
         screen = to_next_life(&screen);
-        if poll(Duration::from_millis(50)).unwrap() {
+        if poll(Duration::from_millis(1)).unwrap() {
             match read()? {
                 Event::Key(k) if k == KeyCode::Char('q').into() => break,
                 _ => (),
