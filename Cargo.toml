@@ -17,3 +17,4 @@ path = "game_of_life/main.rs"
 
 [dependencies]
 crossterm = { version = "0.28.1", features = ["bracketed-paste"] }
+rand = "0.9.1"

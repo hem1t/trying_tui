@@ -1,11 +1,12 @@
 use screen_buffer::ScreenBuffer;
+use tetris_box::make_rect;
 mod screen_buffer;
 mod tetris_box;
 
 fn main() -> std::io::Result<()> {
     let mut screen = ScreenBuffer::auto_new()?;
     do_something(&mut screen);
-    tetris_box::make_rect(&mut screen, (0, 1), (20, 10));
+    make_rect(&mut screen, (0, 1), (20, 10));
     screen.flush()?;
     Ok(())
 }

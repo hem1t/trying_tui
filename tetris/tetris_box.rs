@@ -20,6 +20,7 @@ pub fn make_rect(screen: &mut ScreenBuffer, start: (usize, usize), end: (usize, 
         *screen.get_mut((c, sl)).unwrap() = BoxChar::HORIZONTAL;
         *screen.get_mut((c, el)).unwrap() = BoxChar::HORIZONTAL;
     }
+
     for l in 1..el {
         *screen.get_mut((sc, l)).unwrap() = BoxChar::VERTICAL;
         *screen.get_mut((ec, l)).unwrap() = BoxChar::VERTICAL;
