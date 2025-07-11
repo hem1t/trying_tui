@@ -19,7 +19,7 @@ fn speed_rng() -> usize {
 }
 
 fn size_rng(max: usize) -> usize {
-    // WARNING: divide first then multiply
+    // WARNING: perform mul & div one by one
     let start = max / 3;
     let end = (max / 5) * 4;
     rand::rng().random_range(start..=end)
