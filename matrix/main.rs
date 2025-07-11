@@ -26,10 +26,8 @@ fn size_rng(max: usize) -> usize {
 }
 
 fn main() -> std::io::Result<()> {
-    let kata_rng = Uniform::new_inclusive(0x30A1, 0x30FD).unwrap();
-    let mut rng = rand::rng();
-    let frame_time = Duration::from_millis(9);
     let (ci, li) = crossterm::terminal::size()?;
+    let frame_time = Duration::from_millis(9);
 
     // lines for each column
     let mut lines: Vec<Line> = (0..ci / 2)
@@ -51,20 +49,6 @@ fn main() -> std::io::Result<()> {
     'main_loop: loop {
         draw_lines(&lines)?;
         update_pos(&mut lines);
-
-        for line in lines.iter_mut() {
-            let ls = line.size;
-            line[rand::rng().random_range(0..ls)] =
-                unsafe { char::from_u32_unchecked(kata_rng.sample(&mut rng)) };
-            line[rand::rng().random_range(0..ls)] =
-                unsafe { char::from_u32_unchecked(kata_rng.sample(&mut rng)) };
-            line[rand::rng().random_range(0..ls)] =
-                unsafe { char::from_u32_unchecked(kata_rng.sample(&mut rng)) };
-            line[rand::rng().random_range(0..ls)] =
-                unsafe { char::from_u32_unchecked(kata_rng.sample(&mut rng)) };
-            line[rand::rng().random_range(0..ls)] =
-                unsafe { char::from_u32_unchecked(kata_rng.sample(&mut rng)) };
-        }
 
         if poll(frame_time)? {
             match read()? {
