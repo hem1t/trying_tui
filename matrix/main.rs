@@ -14,20 +14,10 @@ use rand::{
     Rng,
 };
 
-fn speed_rng() -> usize {
-    rand::rng().random_range(1..=10)
-}
-
-fn size_rng(max: usize) -> usize {
-    // WARNING: perform mul & div one by one
-    let start = max / 3;
-    let end = (max / 5) * 4;
-    rand::rng().random_range(start..=end)
-}
+static FRAME_TIME: Duration = Duration::from_millis(9);
 
 fn main() -> std::io::Result<()> {
     let (ci, li) = crossterm::terminal::size()?;
-    let frame_time = Duration::from_millis(9);
 
     // lines for each column
     let mut lines: Vec<Line> = (0..ci / 2)
@@ -47,10 +37,7 @@ fn main() -> std::io::Result<()> {
     execute!(stdout(), cursor::Hide)?;
 
     'main_loop: loop {
-        draw_lines(&lines)?;
-        update_pos(&mut lines);
-
-        if poll(frame_time)? {
+        if poll(FRAME_TIME)? {
             match read()? {
                 Event::Key(k) if k == KeyCode::Char('q').into() => break 'main_loop,
                 _ => (),
@@ -64,36 +51,18 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
-fn update_pos(lines: &mut Vec<Line>) {
-    let l = crossterm::terminal::size().unwrap().1 as usize;
-    for line in lines {
-        line.passed -= 1;
-        if line.passed == 0 {
-            line.passed = line.speed;
-            line.pos += 1;
-        }
-        if line.pos == l {
-            line.pos = 0;
-        }
-    }
+fn speed_rng() -> usize {
+    rand::rng().random_range(1..=10)
 }
 
-fn draw_lines(lines: &Vec<Line>) -> std::io::Result<()> {
-    let l = crossterm::terminal::size()?.1 as usize;
-    for line in lines {
-        for li in 0..line.len() {
-            let l = (li + line.pos) % l;
-
-            let ch = line[li]
-                .with(choose_color(li, line.size))
-                .on(Color::Rgb { r: 0, g: 0, b: 0 });
-
-            execute!(stdout(), MoveTo(line.col as u16, l as u16), Print(ch))?;
-        }
-    }
-    Ok(())
+fn size_rng(max: usize) -> usize {
+    // WARNING: perform mul & div one by one
+    let start = max / 3;
+    let end = (max / 5) * 4;
+    rand::rng().random_range(start..=end)
 }
 
+// TODO: unchanging data; should exists in `Line`
 fn choose_color(li: usize, ls: usize) -> Color {
     if li == ls - 1 {
         return Color::White;
