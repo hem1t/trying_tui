@@ -8,15 +8,27 @@ use crossterm::{
     style::{Color, Print, Stylize},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+
 use rand::{
     distr::{Distribution, Uniform},
     Rng,
 };
 
+fn speed_rng() -> usize {
+    rand::rng().random_range(1..=10)
+}
+
+fn size_rng(max: usize) -> usize {
+    // WARNING: divide first then multiply
+    let start = max / 3;
+    let end = (max / 5) * 4;
+    rand::rng().random_range(start..=end)
+}
+
 fn main() -> std::io::Result<()> {
-    let speed_rng = || rand::rng().random_range(1..=5);
-    let size_rng = |l: usize| rand::rng().random_range((l / 3)..=((l * 2) / 3));
-    let frame_time = Duration::from_millis(20);
+    let kata_rng = Uniform::new_inclusive(0x30A1, 0x30FD).unwrap();
+    let mut rng = rand::rng();
+    let frame_time = Duration::from_millis(9);
     let (ci, li) = crossterm::terminal::size()?;
 
     // lines for each column
@@ -39,6 +51,20 @@ fn main() -> std::io::Result<()> {
     'main_loop: loop {
         draw_lines(&lines)?;
         update_pos(&mut lines);
+
+        for line in lines.iter_mut() {
+            let ls = line.size;
+            line[rand::rng().random_range(0..ls)] =
+                unsafe { char::from_u32_unchecked(kata_rng.sample(&mut rng)) };
+            line[rand::rng().random_range(0..ls)] =
+                unsafe { char::from_u32_unchecked(kata_rng.sample(&mut rng)) };
+            line[rand::rng().random_range(0..ls)] =
+                unsafe { char::from_u32_unchecked(kata_rng.sample(&mut rng)) };
+            line[rand::rng().random_range(0..ls)] =
+                unsafe { char::from_u32_unchecked(kata_rng.sample(&mut rng)) };
+            line[rand::rng().random_range(0..ls)] =
+                unsafe { char::from_u32_unchecked(kata_rng.sample(&mut rng)) };
+        }
 
         if poll(frame_time)? {
             match read()? {
