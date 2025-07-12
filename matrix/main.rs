@@ -2,10 +2,10 @@
 use std::{io::stdout, ops::DerefMut, time::Duration};
 
 use crossterm::{
-    cursor::{self},
+    cursor::{self, MoveTo},
     event::{poll, read, Event, KeyCode},
     execute,
-    style::Color,
+    style::{Color, Print, Stylize},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 
@@ -29,6 +29,10 @@ fn main() -> std::io::Result<()> {
     execute!(stdout(), cursor::Hide)?;
 
     'main_loop: loop {
+        for (col, line) in matrix.iter().enumerate() {
+            draw_line(line, col as u16 * 2)?;
+        }
+
         if poll(FRAME_TIME)? {
             match read()? {
                 Event::Key(k) if k == KeyCode::Char('q').into() => break 'main_loop,
@@ -40,6 +44,14 @@ fn main() -> std::io::Result<()> {
     disable_raw_mode()?;
     execute!(stdout(), LeaveAlternateScreen)?;
     execute!(stdout(), cursor::Show)?;
+    Ok(())
+}
+
+fn draw_line(line: &Line, on_col: u16) -> std::io::Result<()> {
+    for (row, &(ch, color)) in line.iter().enumerate() {
+        execute!(stdout(), MoveTo(on_col, row as u16), Print(ch.with(color)))?;
+    }
+
     Ok(())
 }
 
@@ -71,9 +83,10 @@ impl Line {
         let line = char_rng
             .sample_iter(rand::rng())
             .take(size as usize)
-            .map(|i| {
+            .enumerate()
+            .map(|(i, cui)| {
                 (
-                    unsafe { char::from_u32_unchecked(i) },
+                    unsafe { char::from_u32_unchecked(cui) },
                     choose_color(i as usize, size),
                 )
             })
@@ -105,11 +118,8 @@ fn choose_color(li: usize, ls: usize) -> Color {
     if li == ls - 1 {
         return Color::White;
     }
-    if li >= ls {
-        return Color::Rgb { r: 0, g: 0, b: 0 };
-    }
 
-    let unit = std::cmp::max(255 / ls, 20);
+    let unit = std::cmp::max(255 / ls, 2);
     let g = std::cmp::min(unit * li, 255) as u8;
 
     Color::Rgb { r: 0, g, b: 0 }
