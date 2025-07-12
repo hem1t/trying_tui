@@ -18,7 +18,10 @@ static FRAME_TIME: Duration = Duration::from_millis(9);
 
 fn main() -> std::io::Result<()> {
     let (ci, li) = crossterm::terminal::size()?;
-    let matrix: Vec<Line> = (0..ci / 2).map(|_| Line::new(li as usize)).collect();
+    let kata_rng = Uniform::new_inclusive(0x30A1, 0x30FD).unwrap();
+    let matrix: Vec<Line> = (0..ci / 2)
+        .map(|_| Line::new(kata_rng, li as usize))
+        .collect();
 
     // Inits
     enable_raw_mode()?;
@@ -58,14 +61,15 @@ struct Line {
 }
 
 impl Line {
-    fn new(l_size: usize) -> Self {
-        let kata_rng = Uniform::new_inclusive(0x30A1, 0x30FD).unwrap();
-        let rng = rand::rng();
+    fn new<T>(char_rng: T, l_size: usize) -> Self
+    where
+        T: Distribution<u32>,
+    {
         let size: usize = size_rng(l_size);
         let speed: usize = speed_rng();
 
-        let line = kata_rng
-            .sample_iter(rng)
+        let line = char_rng
+            .sample_iter(rand::rng())
             .take(size as usize)
             .map(|i| {
                 (
