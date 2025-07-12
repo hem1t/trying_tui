@@ -1,5 +1,9 @@
 // TODO: put screen in between
-use std::{io::stdout, ops::DerefMut, time::Duration};
+use std::{
+    io::{stdout, Write},
+    ops::DerefMut,
+    time::Duration,
+};
 
 use crossterm::{
     cursor::{self, MoveTo},
@@ -19,7 +23,7 @@ use rand::{
 static FRAME_TIME: Duration = Duration::from_millis(9);
 ///
 /// After how many frames to change the position of a line
-static SPEED_RANGE: (usize, usize) = (1, 5);
+static SPEED_RANGE: (usize, usize) = (2, 10);
 ///
 /// First number is multiplier and second is divider
 /// for MIN and MAX size of lines
@@ -29,9 +33,10 @@ static LINE_MAX_RATIO: (usize, usize) = (4, 5);
 fn main() -> std::io::Result<()> {
     let (ci, li) = crossterm::terminal::size()?;
     let kata_rng = Uniform::new_inclusive(0x30A1, 0x30FD).unwrap();
-    let matrix: Vec<Line> = (0..ci / 2)
+    let mut matrix: Vec<Line> = (0..ci / 2)
         .map(|_| Line::new(kata_rng, li as usize))
         .collect();
+    let mut frame_count = 0;
 
     // Inits
     enable_raw_mode()?;
@@ -42,6 +47,12 @@ fn main() -> std::io::Result<()> {
         for (col, line) in matrix.iter().enumerate() {
             draw_line(line, col as u16 * 2)?;
         }
+        stdout().flush()?;
+
+        for mut line in matrix.iter_mut() {
+            update_line(&mut line, frame_count);
+        }
+        frame_count += 1;
 
         if poll(FRAME_TIME)? {
             match read()? {
@@ -51,14 +62,26 @@ fn main() -> std::io::Result<()> {
         }
     }
 
+    // TODO: clean up,
+    //       need to make sure runs even after panic
+    //       or before panic
     disable_raw_mode()?;
     execute!(stdout(), LeaveAlternateScreen)?;
     execute!(stdout(), cursor::Show)?;
     Ok(())
 }
 
+fn update_line(line: &mut Line, frame_count: usize) {
+    if frame_count % line.speed.max(1) == 0 {
+        line.pos += 1;
+    }
+}
+
 fn draw_line(line: &Line, on_col: u16) -> std::io::Result<()> {
+    let (_, ls) = crossterm::terminal::size()?;
+    let pos = line.pos;
     for (row, &(ch, color)) in line.iter().enumerate() {
+        let row = (row + pos) % ls as usize;
         execute!(stdout(), MoveTo(on_col, row as u16), Print(ch.with(color)))?;
     }
 
