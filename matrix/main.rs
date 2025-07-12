@@ -14,7 +14,17 @@ use rand::{
     Rng,
 };
 
+///
+/// per frame wait after draw, for an event, before continuing to next frame
 static FRAME_TIME: Duration = Duration::from_millis(9);
+///
+/// After how many frames to change the position of a line
+static SPEED_RANGE: (usize, usize) = (1, 5);
+///
+/// First number is multiplier and second is divider
+/// for MIN and MAX size of lines
+static LINE_MIN_RATIO: (usize, usize) = (1, 3);
+static LINE_MAX_RATIO: (usize, usize) = (4, 5);
 
 fn main() -> std::io::Result<()> {
     let (ci, li) = crossterm::terminal::size()?;
@@ -56,13 +66,13 @@ fn draw_line(line: &Line, on_col: u16) -> std::io::Result<()> {
 }
 
 fn speed_rng() -> usize {
-    rand::rng().random_range(1..=10)
+    rand::rng().random_range((SPEED_RANGE.0)..=(SPEED_RANGE.1))
 }
 
 fn size_rng(max: usize) -> usize {
     // WARNING: perform mul & div one by one
-    let start = max / 3;
-    let end = (max / 5) * 4;
+    let start = LINE_MIN_RATIO.0 * max / LINE_MIN_RATIO.1;
+    let end = LINE_MAX_RATIO.0 * max / LINE_MAX_RATIO.1;
     rand::rng().random_range(start..=end)
 }
 
